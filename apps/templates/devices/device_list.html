@@ -22,7 +22,8 @@
                                         <h5 class="m-b-10">Bootstrap Basic Tables</h5>
                                     </div>
                                     <ul class="breadcrumb">
-                                        <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a></li>
+                                        <li class="breadcrumb-item"><a href="/"><i class="feather icon-home"></i></a>
+                                        </li>
                                         <li class="breadcrumb-item"><a href="#!">Tables</a></li>
                                         <li class="breadcrumb-item"><a href="javascript:">Basic Tables</a></li>
                                     </ul>
@@ -36,6 +37,20 @@
                             <!-- [ Main Content ] start -->
                             <div class="row">
 
+                                <!-- [ basic-map ] start -->
+                                <div class="col-xl-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5>Basic</h5>
+                                            <span class="d-block m-t-5">Map shows places around the world</span>
+                                        </div>
+                                        <div class="card-block">
+                                            <div id="map" class="set-map" style="height:400px;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- [ basic-map ] end -->
+
                                 <!-- [ Hover-table ] start -->
                                 <div class="col-xl-12">
                                     <div class="card">
@@ -47,26 +62,31 @@
                                             <div class="table-responsive">
                                                 <table class="table table-hover">
                                                     <thead>
-                                                        <tr>
-                                                            <th>#</th>
-                                                            <th>Name</th>
-                                                            <th>Color</th>
-                                                            <th>Description</th>
-                                                        </tr>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Name</th>
+                                                        <th>Color</th>
+                                                        <th>Description</th>
+                                                        <th>Latitude</th>
+                                                        <th>Longitude</th>
+                                                    </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {% for device in devices %}
+                                                    {% for device in devices %}
                                                         <tr>
                                                             <th scope="row">{{ device.id }}</th>
                                                             <td>{{ device.name }}</td>
                                                             <td>{{ device.color }}</td>
                                                             <td>{{ device.description }}</td>
+                                                            <td>{{ device.latitude }}</td>
+                                                            <td>{{ device.longitude }}</td>
+                                                            <td><a href="{% url 'devices:device-page' device_id=device.id %}">View</a></td>
                                                         </tr>
-                                                        {% empty %}
+                                                    {% empty %}
                                                         <tr>
                                                             <td colspan="4">No devices found.</td>
                                                         </tr>
-                                                        {% endfor %}
+                                                    {% endfor %}
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -89,4 +109,47 @@
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB-X0Y0jFjvMLRhvryT8qVCaBRYc7VydAc&callback=initMap"></script>
+    <script>
+    function initMap() {
+        console.log("Initializing map...");
+
+        // Create a new map centered on the first device's address
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 7,
+            center: {lat: 49.78450556341959, lng: 15.251112431996722} // Center of Czech Republic
+        });
+
+        console.log("Map initialized. Adding markers...");
+
+        // Loop through the devices and add a marker for each one
+        {% for device in devices %}
+            console.log("Adding marker for device {{ device.id }}...");
+            var marker = new google.maps.Marker({
+                position: { lat: {{ device.latitude }}, lng: {{ device.longitude }} },
+                map: map,
+                title: '{{ device.name }}'
+            });
+            console.log("Marker added for device {{ device.id }}.");
+
+            // Connect this marker to the previous marker with a line
+            if (prevMarker) {
+                var line = new google.maps.Polyline({
+                    path: [prevMarker.getPosition(), marker.getPosition()],
+                    strokeColor: "#FF0000",
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2
+                });
+                line.setMap(map);
+            }
+
+            // Keep track of the previous marker
+            var prevMarker = marker;
+        {% endfor %}
+
+        console.log("All markers and lines added.");
+    }
+    </script>
+
+{% endblock javascripts %}

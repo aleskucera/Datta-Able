@@ -19,10 +19,3 @@ urlpatterns = [
     # Leave `Home.Urls` as last the last line
     path("", include("apps.home.urls"))
 ]
-
-from django.urls import get_resolver
-
-resolver = get_resolver()
-print('Hello World')
-for url in resolver.reverse_dict.keys():
-    print(url)

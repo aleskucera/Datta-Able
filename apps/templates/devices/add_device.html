@@ -43,24 +43,43 @@
                                             <h5>Basic attributes</h5>
                                             <hr>
                                             <div class="col-md-4">
-                                              <form method="post">
-                                                {% csrf_token %}
-                                                <div class="form-group">
-                                                  {{ form.name.label_tag }}
-                                                  {{ form.name }}
-                                                </div>
+                                          <form method="post" id="device-form">
+                                            {% csrf_token %}
+                                            <div class="form-group">
+                                              {{ form.name.label_tag }}
+                                              {{ form.name }}
+                                            </div>
 
-                                                <div class="form-group">
-                                                  {{ form.color.label_tag }}
-                                                  {{ form.color }}
-                                                </div>
+                                            <div class="form-group">
+                                              {{ form.color.label_tag }}
+                                              {{ form.color }}
+                                            </div>
 
-                                                <div class="form-group">
-                                                  {{ form.description.label_tag }}
-                                                  {{ form.description }}
-                                                </div>
+                                            <div class="form-group">
+                                              {{ form.description.label_tag }}
+                                              {{ form.description }}
+                                            </div>
 
-                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                              <div id="address_field" class="form-group">
+                                                <label for="autocomplete">Address:</label>
+                                                <input type="text" id="autocomplete" name="autocomplete" class="form-control" placeholder="Enter your address">
+                                                <input type="hidden" name="formatted_address" id="formatted_address">
+                                              </div>
+
+                                              <div id="coordinates_field" class="form-group" style="display:none;">
+                                                  {{ form.latitude.label_tag }}
+                                                  {{ form.latitude }}
+                                                  {{ form.longitude.label_tag }}
+                                                  {{ form.longitude }}
+                                            </div>
+
+                                              <div class="form-group">
+                                                <label for="use_coordinates">Use Coordinates:</label>
+                                                <input type="checkbox" id="use_coordinates" name="use_coordinates">
+                                              </div>
+
+
+                                            <button type="submit" name="add-device" class="btn btn-primary">Submit</button>
                                                 </form>
                                             </div>
                                           </div>
@@ -79,4 +98,64 @@
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB-X0Y0jFjvMLRhvryT8qVCaBRYc7VydAc&libraries=places"></script>
+<script>
+  function initAutocomplete() {
+    console.log("initAutocomplete function called");
+    var input = document.getElementById('autocomplete');
+    var formattedAddressInput = document.getElementById('formatted_address');
+
+    var autocomplete = new google.maps.places.Autocomplete(input);
+    autocomplete.addListener('place_changed', function() {
+      var place = autocomplete.getPlace();
+      console.log("place: ", place);
+      formattedAddressInput.value = place.formatted_address;
+      console.log("formattedAddressInput.value: ", formattedAddressInput.value);
+    });
+  }
+  google.maps.event.addDomListener(window, 'load', initAutocomplete);
+
+  function geocodeAddress() {
+    var address = document.getElementById('autocomplete').value;
+    var geocoder = new google.maps.Geocoder();
+    geocoder.geocode({'address': address}, function(results, status) {
+      if (status === 'OK') {
+        var latitudeInput = document.getElementById('latitude');
+        var longitudeInput = document.getElementById('longitude');
+        latitudeInput.value = results[0].geometry.location.lat();
+        longitudeInput.value = results[0].geometry.location.lng();
+      } else {
+        alert('Geocode was not successful for the following reason: ' + status);
+      }
+    });
+  }
+
+  const useCoordinatesCheckbox = document.getElementById('use_coordinates');
+  const addressField = document.getElementById('address_field');
+  const coordinatesField = document.getElementById('coordinates_field');
+
+  useCoordinatesCheckbox.addEventListener('change', () => {
+    if (useCoordinatesCheckbox.checked) {
+      addressField.style.display = 'none';
+      coordinatesField.style.display = 'block';
+    } else {
+      addressField.style.display = 'block';
+      coordinatesField.style.display = 'none';
+    }
+  });
+
+  const addressInput = document.getElementById('autocomplete');
+  addressInput.addEventListener('blur', geocodeAddress);
+
+  document.addEventListener("DOMContentLoaded", function() {
+    var form = document.querySelector("#device-form");
+    form.addEventListener("keydown", function(event) {
+      if (event.keyCode === 13) {
+        event.preventDefault();
+        return false;
+      }
+    });
+  });
+</script>
+{% endblock javascripts %}

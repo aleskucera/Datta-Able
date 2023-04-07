@@ -41,32 +41,29 @@ class DeviceForm(forms.ModelForm):
         )
     )
 
+    latitude = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'id': 'latitude',
+                'placeholder': 'Device Latitude',
+                'class': 'form-control'
+            }
+        )
+    )
+
+    longitude = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'id': 'longitude',
+                'placeholder': 'Device Longitude',
+                'class': 'form-control'
+            }
+        )
+    )
+
     class Meta:
         model = Device
-        fields = ('name', 'color', 'description')
-
-class AddDeviceForm(forms.Form):
-    device_name = forms.CharField(
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Device Name",
-                "class": "form-control"
-            }
-        ))
-    device_color = forms.CharField(
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Device IP",
-                "class": "form-control"
-            }
-        ))
-    device_description = forms.CharField(
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Device port",
-                "class": "form-control"
-            }
-        ))
+        fields = ('name', 'color', 'description', 'latitude', 'longitude')
 
 class LoginForm(forms.Form):
     username = forms.CharField(
