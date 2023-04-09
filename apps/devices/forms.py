@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 
 from .models import Device
 
+
 class DeviceForm(forms.ModelForm):
     COLOR_CHOICES = [
         ('red', 'Red'),
@@ -32,11 +33,22 @@ class DeviceForm(forms.ModelForm):
         )
     )
 
-    description = forms.CharField(
+    ip_address = forms.CharField(
+        label='IP Address',
         widget=forms.TextInput(
             attrs={
-                'placeholder': 'Device Description',
+                'placeholder': 'Device IP Address',
                 'class': 'form-control'
+            }
+        )
+    )
+
+    description = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                'placeholder': 'Device Description',
+                'class': 'form-control',
+                'rows': '3'
             }
         )
     )
@@ -63,7 +75,8 @@ class DeviceForm(forms.ModelForm):
 
     class Meta:
         model = Device
-        fields = ('name', 'color', 'description', 'latitude', 'longitude')
+        fields = ('name', 'ip_address', 'color', 'description', 'latitude', 'longitude')
+
 
 class LoginForm(forms.Form):
     username = forms.CharField(

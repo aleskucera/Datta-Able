@@ -8,6 +8,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from .forms import LoginForm, SignUpForm, DeviceForm
 from .models import Device
+from django.http import JsonResponse
+from django.views.generic.detail import DetailView
+
 
 def device_page(request, device_id):
     device = get_object_or_404(Device, id=device_id)
@@ -21,9 +24,11 @@ def device_page(request, device_id):
     context = {'device': device, 'form': form}
     return render(request, 'devices/device_page.html', context)
 
+
 def device_list(request):
     devices = Device.objects.all()
     return render(request, 'devices/device_list.html', {'devices': devices})
+
 
 def device_create(request):
     if request.method == 'POST':
@@ -35,48 +40,19 @@ def device_create(request):
         form = DeviceForm()
     return render(request, 'devices/add_device.html', {'form': form})
 
-def login_view(request):
-    form = LoginForm(request.POST or None)
 
-    msg = None
+class DeviceDetailView(DetailView):
+    model = Device
 
-    if request.method == "POST":
+    # template_name = "devices/device_detail.html"
 
-        if form.is_valid():
-            username = form.cleaned_data.get("username")
-            password = form.cleaned_data.get("password")
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect("/")
-            else:
-                msg = 'Invalid credentials'
-        else:
-            msg = 'Error validating the form'
-
-    return render(request, "accounts/login.html", {"form": form, "msg": msg})
-
-
-def register_user(request):
-    msg = None
-    success = False
-
-    if request.method == "POST":
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get("username")
-            raw_password = form.cleaned_data.get("password1")
-            user = authenticate(username=username, password=raw_password)
-
-            msg = 'User created successfully.'
-            success = True
-
-            # return redirect("/login/")
-
-        else:
-            msg = 'Form is not valid'
-    else:
-        form = SignUpForm()
-
-    return render(request, "accounts/register.html", {"form": form, "msg": msg, "success": success})
+    def render_to_response(self, context, **response_kwargs):
+        device = self.get_object()
+        data = {
+            "id": device.id,
+            "name": device.name,
+            "latitude": device.latitude,
+            "longitude": device.longitude,
+            "online": device.online
+        }
+        return JsonResponse(data)
